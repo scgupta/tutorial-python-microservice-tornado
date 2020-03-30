@@ -1,0 +1,65 @@
+{
+    "full_name": "Narendra Modi",
+    "addresses": [
+        {
+            "kind": "work",
+            "building_name": "Prime Minister’s Office",
+            "street_name": "South Block",
+            "locality": "Raisina Hill",
+            "city": "New Delhi",
+            "pincode": 110011,
+            "country": "India"
+        },
+        {
+            "kind": "work",
+            "building_name": "BJP Jansampark Karyalaya",
+            "street_number": 77,
+            "street_name": "Ravindrapuri Rd",
+            "locality": "Bhelupur",
+            "city": "Varanasi",
+            "province": "Uttar Pradesh",
+            "pincode": 221005,
+            "country": "India"
+        },
+        {
+            "kind": "home",
+            "street_number": 7,
+            "street_name": "Race Course Road",
+            "city": "New Delhi",
+            "pincode": 110061,
+            "country": "India"
+        }
+    ],
+    "phone_numbers": [
+        {
+            "kind": "work",
+            "country_code": 91,
+            "area_code": 11,
+            "local_number": 23012312
+        }
+    ],
+    "fax_numbers": [
+        {
+            "kind": "work",
+            "country_code": 91,
+            "area_code": 11,
+            "local_number": 23019545
+        },
+        {
+            "kind": "work",
+            "country_code": 91,
+            "area_code": 11,
+            "local_number": 23016857
+        }
+    ],
+    "emails": [
+        {
+            "kind": "work",
+            "email": "connect@mygov.nic.in"
+        },
+        {
+            "kind": "home",
+            "email": "narendramodi1234@gmail.com"
+        }
+    ]
+}
