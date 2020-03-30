@@ -1,5 +1,6 @@
 # Copyright (c) 2020. All rights reserved.
 
+import logging
 from typing import Dict
 import uuid
 
@@ -7,10 +8,12 @@ import uuid
 class AddressBookService:
     def __init__(
         self,
-        config: Dict
+        config: Dict,
+        logger: logging.Logger
     ) -> None:
         # TODO FIXME full class is just dummy stubs
         self.addrs: Dict[str, Dict] = {}
+        self.logger = logger
 
     def start(self):
         # TODO FIXME
