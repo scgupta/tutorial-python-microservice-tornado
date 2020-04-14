@@ -127,7 +127,10 @@ class DefaultRequestHandler(BaseRequestHandler):
 
 class AddressBookRequestHandler(BaseRequestHandler):
     async def get(self):
-        all_addrs = await self.service.get_all_addresses()
+        all_addrs = {}
+        async for nickname, addr in self.service.get_all_addresses():
+            all_addrs[nickname] = addr
+
         self.set_status(200)
         self.finish(all_addrs)
 

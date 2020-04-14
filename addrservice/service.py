@@ -1,47 +1,53 @@
 # Copyright (c) 2020. All rights reserved.
 
+import jsonschema  # type: ignore
 import logging
-from typing import Dict
-import uuid
+from typing import AsyncIterator, Mapping, Tuple
+
+from addrservice import ADDRESS_BOOK_SCHEMA
+from addrservice.database.db_engines import create_addressbook_db
+from addrservice.datamodel import AddressEntry
 
 
 class AddressBookService:
     def __init__(
         self,
-        config: Dict,
+        config: Mapping,
         logger: logging.Logger
     ) -> None:
-        # TODO FIXME full class is just dummy stubs
-        self.addrs: Dict[str, Dict] = {}
+        self.addr_db = create_addressbook_db(config['addr-db'])
         self.logger = logger
 
     def start(self):
-        # TODO FIXME
-        self.addrs = {}
+        self.addr_db.start()
 
     def stop(self):
-        # TODO FIXME
-        pass
+        self.addr_db.stop()
 
-    async def create_address(self, value: Dict) -> str:
-        # TODO FIXME
-        key = uuid.uuid4().hex
-        self.addrs[key] = value
+    def validate_address(self, addr: Mapping) -> None:
+        try:
+            jsonschema.validate(addr, ADDRESS_BOOK_SCHEMA)
+        except jsonschema.exceptions.ValidationError:
+            raise ValueError('JSON Schema validation failed')
+
+    async def create_address(self, value: Mapping) -> str:
+        self.validate_address(value)
+        addr = AddressEntry.from_api_dm(value)
+        key = await self.addr_db.create_address(addr)
         return key
 
-    async def get_address(self, key: str) -> Dict:
-        # TODO FIXME
-        return self.addrs[key]
+    async def get_address(self, key: str) -> Mapping:
+        addr = await self.addr_db.read_address(key)
+        return addr.to_api_dm()
 
-    async def update_address(self, key: str, value: Dict) -> None:
-        # TODO FIXME
-        self.addrs[key]  # will cause exception if key doesn't exist
-        self.addrs[key] = value
+    async def update_address(self, key: str, value: Mapping) -> None:
+        self.validate_address(value)
+        addr = AddressEntry.from_api_dm(value)
+        await self.addr_db.update_address(key, addr)
 
     async def delete_address(self, key: str) -> None:
-        self.addrs[key]  # will cause exception if key doesn't exist
-        del self.addrs[key]
+        await self.addr_db.delete_address(key)
 
-    async def get_all_addresses(self) -> Dict[str, Dict]:
-        # TODO FIXME
-        return self.addrs
+    async def get_all_addresses(self) -> AsyncIterator[Tuple[str, Mapping]]:
+        async for nickname, addr in self.addr_db.read_all_addresses():
+            yield nickname, addr.to_api_dm()

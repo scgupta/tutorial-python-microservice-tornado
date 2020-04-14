@@ -1,6 +1,9 @@
 service:
   name: Address Book
 
+addr-db:
+  memory: null
+
 logging:
   version: 1
   formatters:

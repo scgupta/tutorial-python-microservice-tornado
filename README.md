@@ -14,6 +14,11 @@ $ tree .
 ├── README.md
 ├── addrservice
 │   ├── __init__.py
+│   ├── database
+│   │   ├── __init__.py
+│   │   ├── addressbook_db.py
+│   │   └── db_engines.py
+│   ├── datamodel.py
 │   ├── service.py
 │   ├── tornado
 │   │   ├── __init__.py
@@ -31,13 +36,19 @@ $ tree .
 │       └── raga.json
 ├── requirements.txt
 ├── run.py
+├── schema
+│   └── address-book-v1.0.json
 └── tests
     ├── __init__.py
     ├── integration
     │   ├── __init__.py
+    │   ├── addrservice_test.py
     │   └── tornado_app_addreservice_handlers_test.py
     └── unit
         ├── __init__.py
+        ├── address_data_test.py
+        ├── addressbook_db_test.py
+        ├── datamodel_test.py
         └── tornado_app_handlers_test.py
 ```
 
@@ -449,6 +460,161 @@ $ ./run.py tests
 INFO:addrservice:req_id="a100e35140604d72930cb16c9eed8e8a" method="GET" uri="/addresses/" ip="127.0.0.1" message="RESPONSE" status=200 time_ms=1.232147216796875
 INFO:addrservice:req_id="29b08c81acbd403b89f007ba03b5fee7" method="POST" uri="/addresses/" ip="127.0.0.1" message="RESPONSE" status=201 time_ms=0.9398460388183594
 WARNING:addrservice:req_id="1c959a77f9de4f7e87e384a174fb6fbe" method="POST" uri="/addresses/" ip="127.0.0.1" reason="Invalid JSON body" message="RESPONSE" status=400 time_ms=1.7652511596679688 trace="Traceback.....
+```
+
+---
+
+## 4. Data Model
+
+Get the code:
+
+``` bash
+$ git checkout -b <branch> tag-04-datamodel
+```
+
+### API Data Model
+
+Also known as communication or exchange data model
+The data model for interacting with a microservice. It is designed for efficiently exchanging (sending and receiving) data with the service.
+
+The address book service uses JSON for exchanging data. The [JSON schema](https://json-schema.org/) for the data model is in `schema/address-book-v1.0.json`, and test data in `data/addresses/*.json`. Even the data must be tested to be correct. So there is a test `tests/unit/address_data_test.py` to check whether data files conform to the JSON schema.
+
+``` bash
+$ python3 tests/unit/address_data_test.py
+..
+----------------------------------------------------------------------
+Ran 2 tests in 0.006s
+
+OK
+```
+
+### Object Data Model
+
+Also known as application data model or data structures.
+It is designed for efficiently performing business logic (algorithms) of an application / service.
+
+There are tools like [Python JSON Schema Objects](https://github.com/cwacek/python-jsonschema-objects), [Warlock](https://github.com/bcwaldon/warlock), [Valideer](https://github.com/podio/valideer), that generate POPO (Plain Old Python Object) classes from a JSON schema. These tools do simple structural mapping from JSON schema elements to classes. However, there are validation checks, inheritance, and polymorphism that can't be expressed in JSON schema. So it may require hand-crafting a data model suitable for business logic.
+
+The logical data model is implemented in `addrservice/datamodel.py`.
+
+### Storage Data Model
+
+Also known as Physical Data Model.
+It is designed for efficient storage, retrieval, and search. There are several kinds of data stores: relational, hierarchical, graph. A combination of these storage is picked depending upon the structure of the persistent data, and retrieval and search requirements.
+
+The `addrservice/database/addressbook_db.py` defines an `AbstractAddressBookDB`, which the service interacts with. This decouples the storage choice, and allows changing the storage model without affecting rest of the code. For example, it defines an `InMemoryAddressBookDB` and `FileAddressBookDB`. The in-memory data store is useful in unit/integration tests as it facilitates deep asserts for the state of the store. The file backed storage persists the data in files, and useful for debugging.
+
+The storage can be swapped by setting the configuration, for example:
+
+``` yaml
+addr-db:
+  memory: null
+```
+
+Based on the config, an appropriate DB engine is set up by `addrservice/database/db_engines.py:create_addressbook_db()`.
+
+Following is need to implement a SQL data store:
+
+- Implement a sub-class of `AbstractAddressBookDB` that stores data in a RDBMS
+- Add a case in `create_addressbook_db()`
+- Change config (`configs/addressbook-local.yaml`)
+
+It does not require touch any of the business logic.
+
+### Running the Service
+
+Start the service:
+
+``` bash
+$ python3 addrservice/tornado/server.py --port 8080 --config ./configs/addressbook-local.yaml --debug
+
+2020-03-30 06:46:29,641 addrservice INFO : message="STARTING" service_name="Address Book" port=8080
+```
+
+Test CRUD with curl command:
+
+``` bash
+$ curl -X 'GET' http://localhost:8080/addresses
+
+{}
+
+$ curl -i -X 'POST' -H "Content-Type: application/json" -d "@data/addresses/namo.json" http://localhost:8080/addresses
+
+HTTP/1.1 100 (Continue)
+
+HTTP/1.1 201 Created
+Server: TornadoServer/6.0.3
+Content-Type: text/html; charset=UTF-8
+Date: Mon, 30 Mar 2020 01:22:10 GMT
+Location: /addresses/0bc13fbf2db54ef392a08a37378afa7f
+Content-Length: 0
+Vary: Accept-Encoding
+
+$ curl -X 'GET' http://localhost:8080/addresses/0bc13fbf2db54ef392a08a37378afa7f
+
+{"full_name": "Narendra Modi", "addresses": ...}
+
+$ curl -i -X 'PUT' -H "Content-Type: application/json" -d "@data/addresses/raga.json" http://localhost:8080/addresses/0bc13fbf2db54ef392a08a37378afa7f
+
+HTTP/1.1 204 No Content
+Server: TornadoServer/6.0.3
+Date: Mon, 30 Mar 2020 01:24:51 GMT
+Vary: Accept-Encoding
+
+$ curl -X 'GET' http://localhost:8080/addresses/0bc13fbf2db54ef392a08a37378afa7f
+
+{"full_name": "Rahul Gandhi", "addresses": ...}
+
+$ curl -i -X 'DELETE' http://localhost:8080/addresses/0bc13fbf2db54ef392a08a37378afa7f
+
+HTTP/1.1 204 No Content
+Server: TornadoServer/6.0.3
+Date: Mon, 30 Mar 2020 01:26:34 GMT
+Vary: Accept-Encoding
+
+$ curl -X 'GET' http://localhost:8080/addresses
+
+{}
+```
+
+Change `addr-db` in `configs/addressbook-local.yaml` from memory to file system:
+
+``` yaml
+addr-db:
+  fs: /tmp/addrservice-db
+```
+
+Run all the commands again. You will see records being stored in `/tmp/addrservice-db` as json files.
+
+### Tests and Code Coverage
+
+Run tests and check code coverage:
+
+``` bash
+$ coverage run --source=addrservice --omit="addrservice/tornado/server.py" --branch ./run.py test
+
+..........
+----------------------------------------------------------------------
+Ran 10 tests in 0.148s
+
+OK
+
+$ coverage report
+
+Name                                     Stmts   Miss Branch BrPart  Cover
+--------------------------------------------------------------------------
+addrservice/__init__.py                      7      0      0      0   100%
+addrservice/database/__init__.py             0      0      0      0   100%
+addrservice/database/addressbook_db.py     107      5     28      1    96%
+addrservice/database/db_engines.py           6      0      2      0   100%
+addrservice/datamodel.py                   226      0     54      0   100%
+addrservice/service.py                      36      0      2      0   100%
+addrservice/tornado/__init__.py              0      0      0      0   100%
+addrservice/tornado/app.py                 107      2     20      4    95%
+addrservice/utils/__init__.py                0      0      0      0   100%
+addrservice/utils/logutils.py               28      0      6      0   100%
+--------------------------------------------------------------------------
+TOTAL                                      517      7    112      5    98%
 ```
 
 ---

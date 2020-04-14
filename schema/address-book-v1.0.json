@@ -1,0 +1,143 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Schema of an address book",
+    "definitions": {
+        "kind": {
+            "type": "string",
+            "enum": [
+                "home",
+                "work"
+            ]
+        },
+        "address": {
+            "type": "object",
+            "properties": {
+                "kind": {
+                    "$ref": "#/definitions/kind"
+                },
+                "building_name": {
+                    "type": "string"
+                },
+                "unit_number": {
+                    "type": "number"
+                },
+                "street_number": {
+                    "type": [
+                        "number",
+                        "string"
+                    ]
+                },
+                "street_name": {
+                    "type": "string"
+                },
+                "locality": {
+                    "type": "string"
+                },
+                "city": {
+                    "type": "string"
+                },
+                "province": {
+                    "type": "string"
+                },
+                "pincode": {
+                    "type": [
+                        "number",
+                        "string"
+                    ]
+                },
+                "country": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "kind",
+                "street_name",
+                "pincode",
+                "country"
+            ],
+            "additionalProperties": false
+        },
+        "phone": {
+            "type": "object",
+            "properties": {
+                "kind": {
+                    "$ref": "#/definitions/kind"
+                },
+                "country_code": {
+                    "type": "number"
+                },
+                "area_code": {
+                    "type": "number"
+                },
+                "local_number": {
+                    "type": "number"
+                }
+            },
+            "required": [
+                "kind",
+                "country_code",
+                "local_number"
+            ],
+            "additionalProperties": false
+        },
+        "email": {
+            "type": "object",
+            "properties": {
+                "kind": {
+                    "$ref": "#/definitions/kind"
+                },
+                "email": {
+                    "type": "string",
+                    "format": "email"
+                }
+            },
+            "required": [
+                "kind",
+                "email"
+            ],
+            "additionalProperties": false
+        },
+        "addressEntry": {
+            "$id": "#addressEntry",
+            "type": "object",
+            "properties": {
+                "full_name": {
+                    "type": "string"
+                },
+                "addresses": {
+                    "type": "array",
+                    "minItems": 0,
+                    "items": {
+                        "$ref": "#/definitions/address"
+                    }
+                },
+                "phone_numbers": {
+                    "type": "array",
+                    "minItems": 0,
+                    "items": {
+                        "$ref": "#/definitions/phone"
+                    }
+                },
+                "fax_numbers": {
+                    "type": "array",
+                    "minItems": 0,
+                    "items": {
+                        "$ref": "#/definitions/phone"
+                    }
+                },
+                "emails": {
+                    "type": "array",
+                    "minItems": 0,
+                    "items": {
+                        "$ref": "#/definitions/email"
+                    }
+                }
+            },
+            "required": [
+                "full_name"
+            ],
+            "additionalProperties": false
+        }
+    },
+    "$ref": "#/definitions/addressEntry"
+}
