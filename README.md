@@ -1,4 +1,11 @@
-# Tutorial: Building, testing and profiling efficient micro-services using Tornado
+# Tutorial: Building and testing micro-services using Tornado
+
+Blog Posts:
+
+1. [Choices, Key Concepts, and Project setup](https://www.ml4devs.com/articles/python-microservices-tornado-01-asyncio-lint-test-coverage-project-setup/)
+2. [Build and Test REST Endpoints With Tornado](https://www.ml4devs.com/articles/python-microservices-tornado-02-rest-unit-integration-tests/)
+3. [Effective Canonical Logging Across Services](https://www.ml4devs.com/articles/python-microservices-tornado-03-effective-canonical-logging-across-services/)
+4. [API, Object, and Storage Data Models](https://www.ml4devs.com/articles/python-microservices-tornado-04-api-object-and-physical-storage-data-models/)
 
 ## 0. Get the source code
 
