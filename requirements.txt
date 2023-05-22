@@ -10,5 +10,5 @@ jsonschema==3.2.0
 logfmt==0.4
 mypy==0.761
 PyYAML==5.4
-requests==2.22.0
+requests==2.31.0
 tornado==6.0.3
